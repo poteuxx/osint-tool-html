@@ -1,11 +1,25 @@
-<input type="text" id="host" placeholder="Enter target">
-<button onclick="doTraceroute()">Traceroute</button>
-<pre id="result"></pre>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Traceroute — OSINT Master</title>
+<style>/* same as ping.html */</style>
+</head>
+<body>
+  <h1>Traceroute Tool</h1>
+  <div class="card">
+    <input id="host" placeholder="Enter host (example.com)">
+    <button onclick="doTrace()">Traceroute</button>
+    <pre id="output">Waiting for input...</pre>
+  </div>
 <script>
-function doTraceroute() {
-    const host = document.getElementById('target').value;
-    document.getElementById('result').innerText = `Traceroute to ${target} is not implemented in browser`; 
-    // Browsers cannot do Traceroute; you might use a backend API instead
+function doTrace(){
+    const host=document.getElementById('host').value.trim();
+    const out=document.getElementById('output');
+    if(!host){out.textContent="Enter a host!";return;}
+    out.textContent=`TRACEROUTE ${host} ...\nBrowser cannot perform traceroute.\nUse a backend API instead.`;
 }
 </script>
+</body>
+</html>
