@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSINT Quick Search</title>
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #0e0e0e;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+  }
+
+  h1 {
+    font-weight: 400;
+    color: #00bfff;
+    margin-bottom: 20px;
+  }
+
+  input {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px 15px;
+    width: 280px;
+    font-size: 16px;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: #00bfff;
+  }
+
+  button {
+    background-color: #00bfff;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  button:hover {
+    background-color: #00a2e8;
+  }
+
+  .links {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  a {
+    background-color: #1a1a1a;
+    padding: 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #00bfff;
+    transition: 0.2s;
+  }
+
+  a:hover {
+    background-color: #00bfff;
+    color: #000;
+  }
+</style>
+</head>
+<body>
+  <h1>🔍 OSINT Quick Search</h1>
+  <input type="text" id="query" placeholder="Enter username, domain, or IP..." />
+  <button onclick="searchAll()">Search Everywhere</button>
+
+  <div class="links" id="results"></div>
+
+<script>
+const engines = [
+  { name: "Google", url: "https://www.google.com/search?q=" },
+  { name: "Bing", url: "https://www.bing.com/search?q=" },
+  { name: "DuckDuckGo", url: "https://duckduckgo.com/?q=" },
+  { name: "GitHub", url: "https://github.com/search?q=" },
+  { name: "Reddit", url: "https://www.reddit.com/search/?q=" },
+  { name: "Twitter (X)", url: "https://x.com/search?q=" },
+  { name: "LinkedIn", url: "https://www.linkedin.com/search/results/all/?keywords=" },
+  { name: "Shodan", url: "https://www.shodan.io/search?query=" },
+  { name: "Censys", url: "https://search.censys.io/search?resource=hosts&q=" },
+  { name: "VirusTotal", url: "https://www.virustotal.com/gui/search/" }
+];
+
+function searchAll() {
+  const query = document.getElementById('query').value.trim();
+  const container = document.getElementById('results');
+  container.innerHTML = "";
+
+  if (!query) return alert("Please enter a search term.");
+
+  engines.forEach(engine => {
+    const link = document.createElement('a');
+    link.href = engine.url + encodeURIComponent(query);
+    link.target = "_blank";
+    link.textContent = `Search ${engine.name}`;
+    container.appendChild(link);
+  });
+}
+</script>
+</body>
+</html>
