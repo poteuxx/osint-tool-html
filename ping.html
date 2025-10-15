@@ -1,0 +1,11 @@
+<input type="text" id="host" placeholder="Enter host">
+<button onclick="doPing()">Ping</button>
+<pre id="result"></pre>
+
+<script>
+function doPing() {
+    const host = document.getElementById('host').value;
+    document.getElementById('result').innerText = `Ping to ${host} is not implemented in browser`; 
+    // Browsers cannot do ICMP ping; you might use a backend API instead
+}
+</script>
