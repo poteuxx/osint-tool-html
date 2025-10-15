@@ -1,0 +1,11 @@
+<input type="text" id="host" placeholder="Enter target">
+<button onclick="doTraceroute()">Traceroute</button>
+<pre id="result"></pre>
+
+<script>
+function doTraceroute() {
+    const host = document.getElementById('target').value;
+    document.getElementById('result').innerText = `Traceroute to ${target} is not implemented in browser`; 
+    // Browsers cannot do Traceroute; you might use a backend API instead
+}
+</script>
