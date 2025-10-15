@@ -1,11 +1,25 @@
-<input type="text" id="domain" placeholder="Enter domain">
-<button onclick="doWhois()">Whois</button>
-<pre id="whois-result"></pre>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Whois — OSINT Master</title>
+<style>/* same as ping.html */</style>
+</head>
+<body>
+<h1>Whois Tool</h1>
+<div class="card">
+  <input id="domain" placeholder="Enter domain (example.com)">
+  <button onclick="doWhois()">Whois</button>
+  <pre id="output">Waiting for input...</pre>
+</div>
 <script>
-async function doWhois() {
-    const domain = document.getElementById('domain').value;
-    // Placeholder: real whois requires backend
-    document.getElementById('whois-result').innerText = `Whois info for ${domain} cannot run in browser.`;
+function doWhois(){
+    const domain=document.getElementById('domain').value.trim();
+    const out=document.getElementById('output');
+    if(!domain){out.textContent="Enter a domain!";return;}
+    out.textContent=`WHOIS ${domain} ...\nBrowser cannot fetch WHOIS data.\nUse a backend API instead.`;
 }
 </script>
+</body>
+</html>
