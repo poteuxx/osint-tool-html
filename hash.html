@@ -1,0 +1,19 @@
+<input type="text" id="textToHash" placeholder="Enter text">
+<select id="hashType">
+  <option value="SHA-256">SHA-256</option>
+  <option value="MD5">MD5</option>
+</select>
+<button onclick="generateHash()">Generate Hash</button>
+<pre id="hashResult"></pre>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+function generateHash() {
+    const text = document.getElementById('textToHash').value;
+    const type = document.getElementById('hashType').value;
+    let hash;
+    if(type === 'SHA-256') hash = CryptoJS.SHA256(text);
+    else if(type === 'MD5') hash = CryptoJS.MD5(text);
+    document.getElementById('hashResult').innerText = hash;
+}
+</script>
