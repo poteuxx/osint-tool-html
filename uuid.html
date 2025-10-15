@@ -1,0 +1,9 @@
+<button onclick="generateUUID()">Generate UUID</button>
+<pre id="uuidResult"></pre>
+
+<script>
+function generateUUID() {
+    const uuid = crypto.randomUUID();
+    document.getElementById('uuidResult').innerText = uuid;
+}
+</script>
