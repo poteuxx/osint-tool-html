@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Traffic Monitor — OSINT Master</title>
+<style>
+  :root{--bg:#0b0b0c;--panel:#121214;--muted:#9aa3ad;--accent:#1db954;--glass:rgba(255,255,255,0.03);}
+  body{margin:0;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#050506);color:#e6eef1;display:flex;align-items:flex-start;min-height:100vh;padding:24px}
+  .card{background:linear-gradient(180deg,var(--panel),#0f1011);padding:16px;border-radius:12px;max-width:980px;width:100%}
+  input,select{background:var(--glass);border:1px solid rgba(255,255,255,0.05);color:inherit;padding:10px;border-radius:8px;outline:none}
+  button{background:var(--accent);border:none;color:#021;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+  .row{display:flex;gap:8px;align-items:center}
+  pre{background:#000;padding:12px;color:#0f0;border-radius:8px;font-size:13px;overflow-x:auto;margin-top:12px}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;color:var(--muted)}
+  th{color:var(--accent)}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;color:var(--accent)">Traffic Monitor — Ingress & Egress</h2>
+
+    <div class="row">
+      <input id="targetNetwork" placeholder="Enter IP or network (e.g. 192.168.1.0/24 or 203.0.113.5)" style="flex:1">
+      <button onclick="fetchTraffic()">Get Traffic</button>
+    </div>
+
+    <div class="hint">Demo: browsers can't capture network traffic. Use this page to query a backend agent that exposes aggregates (top talkers, ports, bytes).</div>
+
+    <pre id="output">No data. Connect this page to your backend API endpoint (example: /api/traffic?network=...)</pre>
+
+    <h3 style="margin-top:16px;color:var(--muted)">Top Talkers (demo)</h3>
+    <table id="topTable">
+      <thead><tr><th>IP</th><th>Bytes</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td class="muted">—</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:12px;color:var(--muted);font-size:13px">
+      <strong>Implementation notes:</strong>
+      <ul>
+        <li>Agent: run tcpdump/tshark or use NetFlow/sFlow on a collector; send aggregated stats to your HTTPS API.</li>
+        <li>API endpoints: <code>/api/traffic/top-talkers?network=</code>, <code>/api/traffic/summary?network=</code>.</li>
+        <li>For lightweight setups, have an agent push periodic JSON summaries (top 10 IPs, ports, bytes).</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+async function fetchTraffic(){
+  const out=document.getElementById('output');
+  const target=document.getElementById('targetNetwork').value.trim();
+  if(!target){alert('Enter an IP or network');return;}
+  out.textContent='Requesting traffic data for '+target+' ...\n\nDemo: no backend connected.';
+  // DEMO: fill sample top talkers (replace by real fetch to your backend)
+  const sample=[
+    {ip:'203.0.113.12',bytes:1204234,dir:'egress'},
+    {ip:'198.51.100.5',bytes:423123,dir:'ingress'},
+    {ip:'192.0.2.45',bytes:12123,dir:'egress'}
+  ];
+  const tbody=document.querySelector('#topTable tbody');
+  tbody.innerHTML='';
+  sample.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${s.ip}</td><td>${(s.bytes).toLocaleString()}</td><td>${s.dir}</td>`;
+    tbody.appendChild(tr);
+  });
+  out.textContent += '\nDemo top talkers loaded. Replace the demo section with a fetch to your agent API.\nExample code comment:\n// fetch(`/api/traffic/top-talkers?network=${encodeURIComponent(target)}`)\n//   .then(r=>r.json()).then(render)\n`;
+}
+</script>
+</body>
+</html>
