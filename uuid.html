@@ -1,9 +1,22 @@
-<button onclick="generateUUID()">Generate UUID</button>
-<pre id="uuidResult"></pre>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UUID Tool — OSINT Master</title>
+<style>/* same as ping.html */</style>
+</head>
+<body>
+<h1>UUID Generator</h1>
+<div class="card">
+  <button onclick="genUUID()">Generate UUID</button>
+  <pre id="output">Waiting...</pre>
+</div>
 <script>
-function generateUUID() {
-    const uuid = crypto.randomUUID();
-    document.getElementById('uuidResult').innerText = uuid;
+function genUUID(){
+    const uuid=crypto.randomUUID();
+    document.getElementById('output').textContent=uuid;
 }
 </script>
+</body>
+</html>
