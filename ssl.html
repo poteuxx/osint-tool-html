@@ -1,1 +1,25 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SSL Checker — OSINT Master</title>
+<style>/* same as ping.html */</style>
+</head>
+<body>
+<h1>SSL Checker Tool</h1>
+<div class="card">
+  <input id="host" placeholder="Enter host (example.com)">
+  <button onclick="checkSSL()">Check SSL</button>
+  <pre id="output">Waiting for input...</pre>
+</div>
+<script>
+function checkSSL(){
+    const host=document.getElementById('host').value.trim();
+    const out=document.getElementById('output');
+    if(!host){out.textContent="Enter a host!";return;}
+    out.textContent=`SSL check for ${host} ...\nBrowser cannot check SSL directly.\nUse a backend API.`;
+}
+</script>
+</body>
+</html>
