@@ -1,0 +1,11 @@
+<input type="text" id="domain" placeholder="Enter domain">
+<button onclick="doWhois()">Whois</button>
+<pre id="whois-result"></pre>
+
+<script>
+async function doWhois() {
+    const domain = document.getElementById('domain').value;
+    // Placeholder: real whois requires backend
+    document.getElementById('whois-result').innerText = `Whois info for ${domain} cannot run in browser.`;
+}
+</script>
