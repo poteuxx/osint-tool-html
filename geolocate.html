@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IP / Location Finder — OSINT Master</title>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-sA+4xv2yV+q2f7r2+9lU2s3Q1x4G7Ln8u6m0rY6b8kQ=" crossorigin=""/>
+
+<style>
+  :root{--bg:#0b0b0c;--panel:#121214;--muted:#9aa3ad;--accent:#1db954;--glass:rgba(255,255,255,0.03);}
+  body{margin:0;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#050506);color:#e6eef1;display:flex;flex-direction:column;gap:12px;padding:18px}
+  .card{background:linear-gradient(180deg,var(--panel),#0f1011);padding:14px;border-radius:12px;max-width:1100px;width:100%}
+  .row{display:flex;gap:8px;align-items:center}
+  input{background:var(--glass);border:1px solid rgba(255,255,255,0.05);color:inherit;padding:10px;border-radius:8px;outline:none}
+  button{background:var(--accent);border:none;color:#021;padding:10px 14px;border-radius:8px;cursor:pointer}
+  #map{height:520px;border-radius:10px;margin-top:12px;border:1px solid rgba(255,255,255,0.04)}
+  pre{background:#000;padding:12px;color:#0f0;border-radius:8px;font-size:13px;overflow-x:auto;margin-top:12px}
+  .muted{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="margin:0;color:var(--accent)">IP / Coordinates Finder</h2>
+
+    <div style="margin-top:10px" class="row">
+      <input id="ipInput" placeholder="Enter IP (e.g. 8.8.8.8) or lat,long (e.g. 45.4215,-75.6972)" style="flex:1">
+      <button onclick="locate()">Find</button>
+      <button onclick="useMyIP()">My IP</button>
+    </div>
+
+    <div class="muted" style="margin-top:8px">Enter an IP address to resolve location via public geolocation API, or enter coordinates to drop a blue dot on the map.</div>
+
+    <div id="map"></div>
+
+    <pre id="info">Result will appear here.</pre>
+  </div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-XQoYMqMTK8LvdxXYG3nZf3tq9V+g9c2bqvFvQm0hU8M=" crossorigin=""></script>
+
+<script>
+// initialize map
+const map = L.map('map', {attributionControl:false}).setView([20,0], 2);
+
+// tile layer (OpenStreetMap)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
+
+// blue dot marker style
+const blueIcon = L.circleMarker([0,0], {radius:8, color:'#0b66ff', fillColor:'#0b66ff', fillOpacity:0.9});
+
+// keep a marker reference
+let currMarker = null;
+
+function setMarker(lat, lon, label){
+  if(currMarker) map.removeLayer(currMarker);
+  currMarker = L.circleMarker([lat, lon], {radius:8, color:'#0b66ff', fillColor:'#0b66ff', fillOpacity:0.9}).addTo(map);
+  if(label) currMarker.bindPopup(label).openPopup();
+  map.setView([lat, lon], 10, {animate:true});
+}
+
+async function locate(){
+  const v=document.getElementById('ipInput').value.trim();
+  const info=document.getElementById('info');
+  if(!v){alert('Enter an IP or coordinates');return;}
+  info.textContent='Looking up...';
+
+  // Detect coordinates input: "lat,lon"
+  const coordMatch = v.match(/^\s*([+-]?\d+(\.\d+)?)\s*,\s*([+-]?\d+(\.\d+)?)\s*$/);
+  if(coordMatch){
+    const lat = parseFloat(coordMatch[1]);
+    const lon = parseFloat(coordMatch[3]);
+    setMarker(lat, lon, `Coordinates: ${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+    info.textContent = `Coordinates used: ${lat}, ${lon}`;
+    return;
+  }
+
+  // Otherwise treat as IP address
+  const ip = v;
+  info.textContent = `Resolving IP ${ip} via ipapi.co ...`;
+  try{
+    // ipapi.co offers CORS and a free tier for basic info
+    const res = await fetch('https://ipapi.co/' + encodeURIComponent(ip) + '/json/');
+    if(!res.ok) throw new Error('Lookup failed: ' + res.status);
+    const data = await res.json();
+    if(data.error){
+      info.textContent = `Lookup error: ${data.reason || 'unknown'}`;
+      return;
+    }
+    const lat = parseFloat(data.latitude || data.lat || data.latitude);
+    const lon = parseFloat(data.longitude || data.lon || data.longitude);
+    if(!lat || !lon){ // some APIs use different keys
+      // try alternative fields
+      if(data.latitude && data.longitude){
+        lat = parseFloat(data.latitude); lon = parseFloat(data.longitude);
+      }
+    }
+    // if still no coords, try `loc` (ipinfo style)
+    if(!lat && data.loc){
+      const parts = data.loc.split(',');
+      if(parts.length===2){ lat=parseFloat(parts[0]); lon=parseFloat(parts[1]); }
+    }
+
+    // if we have coordinates
+    if(lat && lon){
+      setMarker(lat, lon, `${data.ip || ip} — ${data.city||''} ${data.region||''} ${data.country_name||data.country||''}`);
+      info.textContent = `IP: ${data.ip || ip}\nCity: ${data.city || '—'}\nRegion: ${data.region || '—'}\nCountry: ${data.country_name || data.country || '—'}\nLatitude: ${lat}\nLongitude: ${lon}\nISP: ${data.org || data.org || data.asn || '—'}`;
+    } else {
+      info.textContent = `No coordinates returned for ${ip}. Response:\n` + JSON.stringify(data, null, 2);
+    }
+  }catch(err){
+    info.textContent = 'Error: ' + err.message;
+  }
+}
+
+async function useMyIP(){
+  // fetch public IP info for the client
+  const info=document.getElementById('info');
+  info.textContent = 'Getting your public IP...';
+  try{
+    const r = await fetch('https://ipapi.co/json/');
+    if(!r.ok) throw new Error('Failed to fetch');
+    const data = await r.json();
+    document.getElementById('ipInput').value = data.ip;
+    // trigger locate for your IP
+    locate();
+  }catch(e){ info.textContent = 'Error: ' + e.message; }
+}
+</script>
+</body>
+</html>
