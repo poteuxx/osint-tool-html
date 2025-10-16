@@ -43,34 +43,35 @@
  integrity="sha256-XQoYMqMTK8LvdxXYG3nZf3tq9V+g9c2bqvFvQm0hU8M=" crossorigin=""></script>
 
 <script>
-// initialize map
-const map = L.map('map', {attributionControl:false}).setView([20,0], 2);
+// initialize map after div exists
+const map = L.map('map', { attributionControl: false }).setView([20,0], 2);
 
 // tile layer (OpenStreetMap)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
 }).addTo(map);
 
-// blue dot marker style
-const blueIcon = L.circleMarker([0,0], {radius:8, color:'#0b66ff', fillColor:'#0b66ff', fillOpacity:0.9});
-
-// keep a marker reference
 let currMarker = null;
 
 function setMarker(lat, lon, label){
   if(currMarker) map.removeLayer(currMarker);
-  currMarker = L.circleMarker([lat, lon], {radius:8, color:'#0b66ff', fillColor:'#0b66ff', fillOpacity:0.9}).addTo(map);
+  currMarker = L.circleMarker([lat, lon], {
+    radius: 8,
+    color: '#0b66ff',
+    fillColor: '#0b66ff',
+    fillOpacity: 0.9
+  }).addTo(map);
   if(label) currMarker.bindPopup(label).openPopup();
   map.setView([lat, lon], 10, {animate:true});
 }
 
 async function locate(){
-  const v=document.getElementById('ipInput').value.trim();
-  const info=document.getElementById('info');
-  if(!v){alert('Enter an IP or coordinates');return;}
-  info.textContent='Looking up...';
+  const v = document.getElementById('ipInput').value.trim();
+  const info = document.getElementById('info');
+  if(!v){alert('Enter an IP or coordinates'); return;}
+  info.textContent = 'Looking up...';
 
-  // Detect coordinates input: "lat,lon"
+  // Detect coordinates input
   const coordMatch = v.match(/^\s*([+-]?\d+(\.\d+)?)\s*,\s*([+-]?\d+(\.\d+)?)\s*$/);
   if(coordMatch){
     const lat = parseFloat(coordMatch[1]);
@@ -80,11 +81,10 @@ async function locate(){
     return;
   }
 
-  // Otherwise treat as IP address
+  // Otherwise treat as IP
   const ip = v;
   info.textContent = `Resolving IP ${ip} via ipapi.co ...`;
   try{
-    // ipapi.co offers CORS and a free tier for basic info
     const res = await fetch('https://ipapi.co/' + encodeURIComponent(ip) + '/json/');
     if(!res.ok) throw new Error('Lookup failed: ' + res.status);
     const data = await res.json();
@@ -92,24 +92,14 @@ async function locate(){
       info.textContent = `Lookup error: ${data.reason || 'unknown'}`;
       return;
     }
-    const lat = parseFloat(data.latitude || data.lat || data.latitude);
-    const lon = parseFloat(data.longitude || data.lon || data.longitude);
-    if(!lat || !lon){ // some APIs use different keys
-      // try alternative fields
-      if(data.latitude && data.longitude){
-        lat = parseFloat(data.latitude); lon = parseFloat(data.longitude);
-      }
+    const lat = parseFloat(data.latitude || data.lat);
+    const lon = parseFloat(data.longitude || data.lon);
+    if(!lat || !lon){
+      if(data.loc){ const parts=data.loc.split(','); lat=parseFloat(parts[0]); lon=parseFloat(parts[1]); }
     }
-    // if still no coords, try `loc` (ipinfo style)
-    if(!lat && data.loc){
-      const parts = data.loc.split(',');
-      if(parts.length===2){ lat=parseFloat(parts[0]); lon=parseFloat(parts[1]); }
-    }
-
-    // if we have coordinates
     if(lat && lon){
       setMarker(lat, lon, `${data.ip || ip} — ${data.city||''} ${data.region||''} ${data.country_name||data.country||''}`);
-      info.textContent = `IP: ${data.ip || ip}\nCity: ${data.city || '—'}\nRegion: ${data.region || '—'}\nCountry: ${data.country_name || data.country || '—'}\nLatitude: ${lat}\nLongitude: ${lon}\nISP: ${data.org || data.org || data.asn || '—'}`;
+      info.textContent = `IP: ${data.ip || ip}\nCity: ${data.city || '—'}\nRegion: ${data.region || '—'}\nCountry: ${data.country_name || data.country || '—'}\nLatitude: ${lat}\nLongitude: ${lon}\nISP: ${data.org || '—'}`;
     } else {
       info.textContent = `No coordinates returned for ${ip}. Response:\n` + JSON.stringify(data, null, 2);
     }
@@ -119,7 +109,6 @@ async function locate(){
 }
 
 async function useMyIP(){
-  // fetch public IP info for the client
   const info=document.getElementById('info');
   info.textContent = 'Getting your public IP...';
   try{
@@ -127,7 +116,6 @@ async function useMyIP(){
     if(!r.ok) throw new Error('Failed to fetch');
     const data = await r.json();
     document.getElementById('ipInput').value = data.ip;
-    // trigger locate for your IP
     locate();
   }catch(e){ info.textContent = 'Error: ' + e.message; }
 }
